@@ -1,0 +1,211 @@
+@import 'tailwindcss';
+@import '../../vendor/livewire/flux/dist/flux.css';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
+@source '../../vendor/livewire/flux/stubs/**/*.blade.php';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: 'Plus Jakarta Sans', 'Inter', 'SolaimanLipi', system-ui, sans-serif;
+
+    --color-zinc-50: #fafafa;
+    --color-zinc-100: #f5f5f5;
+    --color-zinc-200: #e5e5e5;
+    --color-zinc-300: #d4d4d4;
+    --color-zinc-400: #a3a3a3;
+    --color-zinc-500: #737373;
+    --color-zinc-600: #525252;
+    --color-zinc-700: #404040;
+    --color-zinc-800: #262626;
+    --color-zinc-900: #171717;
+    --color-zinc-950: #0a0a0a;
+
+    --color-accent: var(--color-neutral-800);
+    --color-accent-content: var(--color-neutral-800);
+    --color-accent-foreground: var(--color-white);
+}
+
+/* =========================================================
+   FOODCART360 DESIGN SYSTEM - 6 DISTINCT THEMES
+   ========================================================= */
+
+:root,
+[data-theme="modern-light"] {
+    --fc-bg: #f8fafc;
+    --fc-surface: #ffffff;
+    --fc-card: #ffffff;
+    --fc-sidebar: #0f172a;
+    --fc-sidebar-hover: #1e293b;
+    --fc-sidebar-text: #f8fafc;
+    --fc-sidebar-muted: #94a3b8;
+    --fc-border: #e2e8f0;
+    --fc-text: #0f172a;
+    --fc-text-muted: #64748b;
+    --fc-primary: #10b981;
+    --fc-primary-hover: #059669;
+    --fc-primary-light: #ecfdf5;
+    --fc-primary-text: #ffffff;
+    --fc-accent: #3b82f6;
+    --fc-badge-bg: #f1f5f9;
+}
+
+[data-theme="dark-mode"] {
+    --fc-bg: #090d16;
+    --fc-surface: #0f172a;
+    --fc-card: #111827;
+    --fc-sidebar: #0b1120;
+    --fc-sidebar-hover: #1e293b;
+    --fc-sidebar-text: #f1f5f9;
+    --fc-sidebar-muted: #64748b;
+    --fc-border: #1e293b;
+    --fc-text: #f8fafc;
+    --fc-text-muted: #94a3b8;
+    --fc-primary: #10b981;
+    --fc-primary-hover: #059669;
+    --fc-primary-light: #064e3b;
+    --fc-primary-text: #ffffff;
+    --fc-accent: #6366f1;
+    --fc-badge-bg: #1e293b;
+}
+
+[data-theme="warm-food"] {
+    --fc-bg: #fdf8f4;
+    --fc-surface: #ffffff;
+    --fc-card: #ffffff;
+    --fc-sidebar: #2c1810;
+    --fc-sidebar-hover: #43281c;
+    --fc-sidebar-text: #fed7aa;
+    --fc-sidebar-muted: #b45309;
+    --fc-border: #fed7aa;
+    --fc-text: #431407;
+    --fc-text-muted: #9a3412;
+    --fc-primary: #ea580c;
+    --fc-primary-hover: #c2410c;
+    --fc-primary-light: #ffedd5;
+    --fc-primary-text: #ffffff;
+    --fc-accent: #d97706;
+    --fc-badge-bg: #ffedd5;
+}
+
+[data-theme="fresh-restaurant"] {
+    --fc-bg: #f0fdf4;
+    --fc-surface: #ffffff;
+    --fc-card: #ffffff;
+    --fc-sidebar: #064e3b;
+    --fc-sidebar-hover: #065f46;
+    --fc-sidebar-text: #d1fae5;
+    --fc-sidebar-muted: #6ee7b7;
+    --fc-border: #bbf7d0;
+    --fc-text: #064e3b;
+    --fc-text-muted: #047857;
+    --fc-primary: #059669;
+    --fc-primary-hover: #047857;
+    --fc-primary-light: #d1fae5;
+    --fc-primary-text: #ffffff;
+    --fc-accent: #65a30d;
+    --fc-badge-bg: #dcfce7;
+}
+
+[data-theme="premium-black"] {
+    --fc-bg: #050505;
+    --fc-surface: #121212;
+    --fc-card: #141414;
+    --fc-sidebar: #0a0a0a;
+    --fc-sidebar-hover: #1f1f1f;
+    --fc-sidebar-text: #f5f5f5;
+    --fc-sidebar-muted: #a3a3a3;
+    --fc-border: #262626;
+    --fc-text: #f5f5f5;
+    --fc-text-muted: #a3a3a3;
+    --fc-primary: #d4af37;
+    --fc-primary-hover: #b89628;
+    --fc-primary-light: #2a2408;
+    --fc-primary-text: #050505;
+    --fc-accent: #e5a93c;
+    --fc-badge-bg: #262626;
+}
+
+[data-theme="bangladesh"] {
+    --fc-bg: #f2f7f4;
+    --fc-surface: #ffffff;
+    --fc-card: #ffffff;
+    --fc-sidebar: #004d38;
+    --fc-sidebar-hover: #006a4e;
+    --fc-sidebar-text: #e6f4ee;
+    --fc-sidebar-muted: #80c8ad;
+    --fc-border: #b8dfd0;
+    --fc-text: #0f3325;
+    --fc-text-muted: #1e5a44;
+    --fc-primary: #006a4e;
+    --fc-primary-hover: #004d38;
+    --fc-primary-light: #d8eee5;
+    --fc-primary-text: #ffffff;
+    --fc-accent: #f42a41;
+    --fc-badge-bg: #d8eee5;
+}
+
+/* Base styling overrides */
+@layer base {
+    body {
+        background-color: var(--fc-bg);
+        color: var(--fc-text);
+        font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
+
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--fc-border);
+    }
+}
+
+/* Custom UI Tokens */
+.fc-card {
+    background-color: var(--fc-card);
+    border: 1px solid var(--fc-border);
+    border-radius: 0.75rem;
+}
+
+.fc-btn-primary {
+    background-color: var(--fc-primary);
+    color: var(--fc-primary-text);
+    transition: all 0.15s ease-in-out;
+}
+
+.fc-btn-primary:hover {
+    background-color: var(--fc-primary-hover);
+}
+
+.fc-badge {
+    background-color: var(--fc-badge-bg);
+    color: var(--fc-text);
+    border: 1px solid var(--fc-border);
+}
+
+/* Print Invoice & Receipt Styling */
+@media print {
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+
+    .no-print, nav, aside, header, .fc-sidebar {
+        display: none !important;
+    }
+
+    .print-only {
+        display: block !important;
+    }
+
+    .thermal-receipt {
+        width: 80mm !important;
+        margin: 0 auto !important;
+        padding: 5mm !important;
+        font-family: monospace !important;
+    }
+}
