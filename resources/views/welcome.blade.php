@@ -2109,8 +2109,32 @@
                             </div>
                         </div>
                     @else
+                        <!-- GitHub Pages Static Notice -->
+                        <div x-show="window.location.hostname.includes('github.io')" class="p-3 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-200 text-xs space-y-1.5" x-cloak>
+                            <div class="font-bold flex items-center gap-1.5 text-amber-300">
+                                <span>💡</span>
+                                <span>লাইভ ম্যানেজমেন্ট প্যানেল অ্যাক্সেস:</span>
+                            </div>
+                            <p class="text-[11px] text-slate-300 leading-relaxed">
+                                GitHub Pages মূলত কাস্টমার ডিজিটাল মেনু দেখার জন্য। স্টাফ বা ওনার প্যানেলে লগইন করে রিয়েল-টাইমে অর্ডার ও হিসাব পরিচালনা করতে আপনার লাইভ সার্ভার লিংকে ঢুকুন:
+                            </p>
+                            <div class="pt-1 flex flex-col gap-1.5">
+                                <a href="http://192.168.1.176:8000/login" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-center text-xs shadow-md">
+                                    📶 একই ওয়াইফাই লিংকে লগইন করুন (192.168.1.176)
+                                </a>
+                                <a href="https://calm-clowns-joke.loca.lt/login" target="_blank" class="px-3 py-2 rounded-xl bg-[#F85606] hover:bg-orange-600 text-white font-bold text-center text-xs shadow-md">
+                                    🌐 লাইভ অনলাইন টানেলে লগইন করুন
+                                </a>
+                            </div>
+                        </div>
+
                         <!-- Direct Email / Phone & Password Login Form -->
-                        <form method="POST" action="{{ route('login.store') }}" class="space-y-3">
+                        <form
+                            method="POST"
+                            action="{{ route('login.store') }}"
+                            @submit="if(window.location.hostname.includes('github.io')) { $event.preventDefault(); alert('GitHub Pages শুধুমাত্র কাস্টমার মেনু প্রদর্শনের জন্য। ড্যাশবোর্ডে লগইন করতে অনুগ্রহ করে ওপরের লাইভ লিংকে প্রবেশ করুন!'); }"
+                            class="space-y-3"
+                        >
                             @csrf
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-300 mb-1">ইমেইল বা মোবাইল নম্বর *</label>
