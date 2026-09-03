@@ -299,4 +299,14 @@ class CustomerMenuController extends Controller
 
         return back()->with('success', 'ধন্যবাদ! আপনার মূল্যবান রিভিউটি সফলভাবে গ্রহণ করা হয়েছে।');
     }
+
+    /**
+     * Get real-time cart open/close status
+     */
+    public function getCartStatus(): JsonResponse
+    {
+        return response()->json([
+            'is_cart_open' => (bool) Setting::get('is_cart_open', true),
+        ]);
+    }
 }

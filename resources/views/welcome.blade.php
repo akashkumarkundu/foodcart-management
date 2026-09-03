@@ -103,6 +103,19 @@
                 liveTime: '',
                 liveDate: '',
                 clockInterval: null,
+                isCartOpen: {{ $isCartOpen ? 'true' : 'false' }},
+                cartStatusInterval: null,
+
+                checkCartStatus() {
+                    fetch('{{ route('customer.cart-status') }}')
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data && typeof data.is_cart_open !== 'undefined') {
+                                this.isCartOpen = !!data.is_cart_open;
+                            }
+                        })
+                        .catch(() => {});
+                },
 
                 updateLiveClock() {
                     const now = new Date();
@@ -130,6 +143,12 @@
                     this.clockInterval = setInterval(() => {
                         this.updateLiveClock();
                     }, 1000);
+
+                    // Start live polling cart open/closed status every 3 seconds
+                    this.checkCartStatus();
+                    this.cartStatusInterval = setInterval(() => {
+                        this.checkCartStatus();
+                    }, 3000);
 
                     // Auto-load remembered customer details from browser LocalStorage
                     const savedName = localStorage.getItem('fc_customer_name');
@@ -680,27 +699,25 @@
                     </div>
                 </div>
 
-                <!-- Cart Open / Closed Live Status Banner -->
-                @if($isCartOpen)
-                    <div class="px-3.5 py-1.5 bg-emerald-500/15 border-b border-emerald-500/30 flex items-center justify-between text-[11px]">
-                        <div class="flex items-center gap-1.5 text-emerald-500 dark:text-emerald-400 font-bold">
-                            <span class="relative flex h-2 w-2">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                            </span>
-                            <span>🟢 কার্ট খোলা আছে (লাইভ অর্ডার নেওয়া হচ্ছে)</span>
-                        </div>
-                        <span class="text-[10px] text-emerald-600 dark:text-emerald-300 font-semibold">কাউন্টার চালু</span>
+                <!-- Dynamic Reactive Cart Open / Closed Live Status Banner -->
+                <div x-show="isCartOpen" class="px-3.5 py-1.5 bg-emerald-500/15 border-b border-emerald-500/30 flex items-center justify-between text-[11px] transition-all duration-300">
+                    <div class="flex items-center gap-1.5 text-emerald-500 dark:text-emerald-400 font-bold">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <span>🟢 কার্ট খোলা আছে (লাইভ অর্ডার নেওয়া হচ্ছে)</span>
                     </div>
-                @else
-                    <div class="px-3.5 py-2 bg-gradient-to-r from-red-600/30 via-red-500/20 to-amber-500/20 border-b border-red-500/40 flex items-center justify-between text-[11px]">
-                        <div class="flex items-center gap-1.5 text-red-400 font-bold">
-                            <span class="text-sm">🔴</span>
-                            <span>দোকান সাময়িকভাবে বন্ধ আছে (বিকাল ৪টায় খুলবে)</span>
-                        </div>
-                        <span class="text-[9px] px-2 py-0.5 rounded-full bg-red-500/30 text-red-300 font-black tracking-wider uppercase">অর্ডার স্থগিত</span>
+                    <span class="text-[10px] text-emerald-600 dark:text-emerald-300 font-semibold">কাউন্টার চালু</span>
+                </div>
+
+                <div x-show="!isCartOpen" class="px-3.5 py-2 bg-gradient-to-r from-red-600/30 via-red-500/20 to-amber-500/20 border-b border-red-500/40 flex items-center justify-between text-[11px] transition-all duration-300" x-cloak>
+                    <div class="flex items-center gap-1.5 text-red-400 font-bold">
+                        <span class="text-sm">🔴</span>
+                        <span>দোকান সাময়িকভাবে বন্ধ আছে (বিকাল ৪টায় খুলবে)</span>
                     </div>
-                @endif
+                    <span class="text-[9px] px-2 py-0.5 rounded-full bg-red-500/30 text-red-300 font-black tracking-wider uppercase">অর্ডার স্থগিত</span>
+                </div>
 
                 <!-- Search Row -->
                 <div class="px-3 py-2 flex items-center gap-2.5">
@@ -754,15 +771,13 @@
                 </div>
 
                 <!-- Live Status Notice (if cart is closed) -->
-                @if(!$isCartOpen)
-                    <div class="px-3 py-1.5 bg-red-500/20 border-t border-red-500/40 text-red-300 text-[11px] font-bold flex items-center justify-between">
-                        <div class="flex items-center gap-1.5">
-                            <span class="size-2 rounded-full bg-red-500 animate-ping"></span>
-                            <span>কার্ট সাময়িক বন্ধ আছে। এখন অর্ডার নেওয়া হচ্ছে না।</span>
-                        </div>
-                        <span class="text-[9px] bg-red-950 px-1.5 py-0.2 rounded border border-red-800/60">বন্ধ</span>
+                <div x-show="!isCartOpen" class="px-3 py-1.5 bg-red-500/20 border-t border-red-500/40 text-red-300 text-[11px] font-bold flex items-center justify-between transition-all duration-300" x-cloak>
+                    <div class="flex items-center gap-1.5">
+                        <span class="size-2 rounded-full bg-red-500 animate-ping"></span>
+                        <span>কার্ট সাময়িক বন্ধ আছে। এখন অর্ডার নেওয়া হচ্ছে না।</span>
                     </div>
-                @endif
+                    <span class="text-[9px] bg-red-950 px-1.5 py-0.2 rounded border border-red-800/60">বন্ধ</span>
+                </div>
             </header>
 
             <!-- ========================================================= -->

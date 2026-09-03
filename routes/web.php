@@ -33,6 +33,7 @@ Route::post('/customer-order', [CustomerMenuController::class, 'storeOrder'])->n
 Route::get('/track-order', [CustomerMenuController::class, 'track'])->name('customer.track');
 Route::post('/customer-review', [CustomerMenuController::class, 'storeReview'])->name('customer.review');
 Route::post('/apply-coupon', [CustomerMenuController::class, 'applyCoupon'])->name('customer.coupon');
+Route::get('/cart-status', [CustomerMenuController::class, 'getCartStatus'])->name('customer.cart-status');
 
 // 1-Click Demo Login Routes
 Route::get('/demo-login/{role}', [DemoLoginController::class, 'loginAs'])->name('demo.login');
