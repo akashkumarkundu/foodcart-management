@@ -37,6 +37,16 @@
 
                 <button
                     type="button"
+                    @click="toggleAudioAlert()"
+                    :class="audioEnabled ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40' : 'bg-slate-800 text-slate-400 border-slate-700'"
+                    class="w-full px-3 py-2 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs"
+                    title="নতুন অর্ডার আসলে অ্যালার্ট সাউন্ড বাজার জন্য"
+                >
+                    <span x-text="audioEnabled ? '🔊 অ্যালার্ট চালু' : '🔇 অ্যালার্ট বন্ধ'"></span>
+                </button>
+
+                <button
+                    type="button"
                     @click="qrModalOpen = true"
                     class="w-full px-3 py-2 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 text-purple-400 font-bold text-xs flex items-center justify-center gap-1"
                 >
@@ -164,21 +174,58 @@
         <!-- Floating Live Audio Alert Notice (Appears when new order arrives) -->
         <div
             x-show="newOrderAlert.show"
-            x-transition
-            class="p-4 rounded-2xl bg-amber-500 text-slate-950 text-xs font-black flex items-center justify-between shadow-xl animate-bounce"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+            x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+            x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+            class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 max-w-sm w-full bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 text-slate-950 p-4 rounded-3xl shadow-2xl border-2 border-white/50"
             x-cloak
         >
-            <div class="flex items-center gap-2 text-sm">
-                <span class="text-xl">🔔</span>
-                <span x-text="newOrderAlert.message"></span>
+            <div class="flex items-start justify-between gap-2 pb-2 border-b border-black/15">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl animate-bounce">🔔</span>
+                    <div>
+                        <h3 class="font-black text-sm tracking-tight text-white drop-shadow-xs">নতুন কাস্টমার অর্ডার এসেছে!</h3>
+                        <p class="text-[11px] font-black text-black/80" x-text="newOrderAlert.orderNumber"></p>
+                    </div>
+                </div>
+                <button @click="newOrderAlert.show = false" class="size-6 rounded-full bg-black/20 text-black hover:bg-black/40 font-bold flex items-center justify-center text-xs">&times;</button>
             </div>
-            <button
-                type="button"
-                @click="newOrderAlert.show = false; activeTab = 'kitchen'"
-                class="px-3 py-1.5 rounded-xl bg-slate-950 text-amber-400 font-black text-xs hover:bg-slate-900"
-            >
-                কিচেনে দেখুন ➔
-            </button>
+
+            <div class="py-2.5 space-y-1.5 text-xs text-white drop-shadow-2xs">
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-black/80">কাস্টমার:</span>
+                    <span class="font-black text-white" x-text="newOrderAlert.customerName"></span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-black/80">অর্ডারের ধরন:</span>
+                    <span class="px-2 py-0.5 rounded-md bg-black/30 text-yellow-200 font-black text-[11px]" x-text="newOrderAlert.orderTypeBadge"></span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-black/80">মোট বিল:</span>
+                    <span class="font-black text-sm text-yellow-300" x-text="'৳' + newOrderAlert.totalAmount"></span>
+                </div>
+                <div x-show="newOrderAlert.itemsSummary" class="pt-1 text-[11px] text-white/95 font-semibold bg-black/20 p-2 rounded-xl border border-white/20 truncate" x-text="newOrderAlert.itemsSummary"></div>
+            </div>
+
+            <div class="pt-2 flex gap-2">
+                <button
+                    type="button"
+                    @click="newOrderAlert.show = false; activeTab = 'kitchen'"
+                    class="flex-1 py-2.5 rounded-xl bg-slate-950 hover:bg-black text-amber-300 font-black text-xs text-center shadow-md flex items-center justify-center gap-1 transition-all"
+                >
+                    🧑‍🍳 কিচেনে দেখুন
+                </button>
+                <button
+                    type="button"
+                    @click="acknowledgeAndCook(newOrderAlert.orderId)"
+                    class="px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-950 font-black text-xs shadow-md transition-all active:scale-95"
+                >
+                    🍳 রান্না শুরু
+                </button>
+            </div>
         </div>
 
         <!-- Toast notification -->
@@ -657,8 +704,19 @@
                                 ></span>
                             </div>
 
-                            <!-- Customer Info -->
-                            <p class="text-xs font-semibold text-[var(--fc-text)] mb-2" x-text="'কাস্টমার: ' + (order.customer_name || 'গেস্ট')"></p>
+                            <!-- Customer & Table/Parcel Info -->
+                            <div class="flex items-center justify-between gap-1 mb-1.5">
+                                <p class="text-xs font-bold text-[var(--fc-text)] truncate" x-text="'কাস্টমার: ' + (order.customer_name || 'গেস্ট')"></p>
+                                <span
+                                    class="px-2 py-0.5 rounded-lg text-[10px] font-black shrink-0"
+                                    :class="order.table_no ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'"
+                                    x-text="order.table_no ? ('🪑 টেবিল ' + order.table_no) : '🛍️ পার্সেল'"
+                                ></span>
+                            </div>
+                            <div class="flex items-center justify-between text-[10px] pb-1 text-[var(--fc-text-muted)] font-semibold">
+                                <span x-text="'পেমেন্ট: ' + (order.payment_method === 'bkash' ? 'বিকাশ' : (order.payment_method === 'nagad' ? 'নগদ' : 'ক্যাশ'))"></span>
+                                <span class="font-black text-amber-500" x-text="'মোট ৳' + order.total_amount"></span>
+                            </div>
 
                             <!-- Items List -->
                             <div class="space-y-1.5 bg-[var(--fc-bg)] p-3 rounded-2xl text-xs border border-[var(--fc-border)]/50">
@@ -1451,8 +1509,19 @@
                 cashReceived: null,
                 isSubmitting: false,
                 pollingInterval: null,
-                lastSeenOrderId: 0,
-                newOrderAlert: { show: false, message: '' },
+                lastSeenOrderId: {{ $latestOrderId ?? 0 }},
+                audioEnabled: localStorage.getItem('fc_cartboy_audio') !== 'false',
+                audioCtx: null,
+                newOrderAlert: {
+                    show: false,
+                    message: '',
+                    orderId: null,
+                    orderNumber: '',
+                    customerName: '',
+                    orderTypeBadge: '',
+                    totalAmount: 0,
+                    itemsSummary: ''
+                },
                 toast: { show: false, message: '' },
                 foodsList: @json($foods),
                 liveOrdersList: [
@@ -1464,7 +1533,12 @@
                             created_time: '{{ $o->created_at->format('h:i A') }}',
                             time_diff: '{{ $o->created_at->diffForHumans() }}',
                             order_status: '{{ $o->order_status }}',
+                            order_type: '{{ $o->order_type }}',
+                            table_no: '{{ $o->table_no ?? '' }}',
+                            payment_method: '{{ $o->payment_method }}',
+                            payment_status: '{{ $o->payment_status }}',
                             status_bn: '{{ $o->order_status === 'pending' ? 'অপেক্ষারত' : ($o->order_status === 'preparing' ? 'রান্না হচ্ছে' : 'রেডি') }}',
+                            total_amount: '{{ number_format($o->total_amount, 0) }}',
                             notes: '{{ addslashes($o->notes ?? '') }}',
                             items: [
                                 @foreach($o->items as $item)
@@ -1483,6 +1557,8 @@
                             customer_phone: '{{ $to->customer?->phone ?? '' }}',
                             created_time: '{{ $to->created_at->format('h:i A') }}',
                             order_status: '{{ $to->order_status }}',
+                            order_type: '{{ $to->order_type }}',
+                            table_no: '{{ $to->table_no ?? '' }}',
                             status_bn: '{{ $to->order_status === 'pending' ? 'পেন্ডিং' : ($to->order_status === 'preparing' ? 'রান্না হচ্ছে' : ($to->order_status === 'ready' ? 'রেডি' : 'ডেলিভারি সম্পন্ন')) }}',
                             total_amount: '{{ number_format($to->total_amount, 0) }}',
                             payment_method: '{{ $to->payment_method }}',
@@ -1496,42 +1572,101 @@
                 ],
 
                 init() {
-                    // Set latest seen order ID from initial list
-                    if (this.liveOrdersList.length > 0) {
+                    // Set latest seen order ID
+                    if (this.lastSeenOrderId === 0 && this.liveOrdersList.length > 0) {
                         this.lastSeenOrderId = Math.max(...this.liveOrdersList.map(o => o.id));
                     }
 
-                    // Start background polling every 10 seconds for real-time kitchen orders
+                    // Unlock audio on first user touch / click
+                    const unlockAudio = () => {
+                        this.getAudioContext();
+                        if ("Notification" in window && Notification.permission === "default") {
+                            Notification.requestPermission();
+                        }
+                        document.removeEventListener('click', unlockAudio);
+                        document.removeEventListener('touchstart', unlockAudio);
+                    };
+                    document.addEventListener('click', unlockAudio, { once: true });
+                    document.addEventListener('touchstart', unlockAudio, { once: true });
+
+                    // Background polling every 2.5 seconds for instant real-time notifications
+                    this.pollLiveOrders();
                     this.pollingInterval = setInterval(() => {
                         this.pollLiveOrders();
-                    }, 10000);
+                    }, 2500);
                 },
 
-                // Synthesized audio alert for incoming orders
+                getAudioContext() {
+                    if (!this.audioCtx) {
+                        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                        if (AudioCtx) {
+                            this.audioCtx = new AudioCtx();
+                        }
+                    }
+                    if (this.audioCtx && this.audioCtx.state === 'suspended') {
+                        this.audioCtx.resume();
+                    }
+                    return this.audioCtx;
+                },
+
+                toggleAudioAlert() {
+                    this.audioEnabled = !this.audioEnabled;
+                    localStorage.setItem('fc_cartboy_audio', this.audioEnabled ? 'true' : 'false');
+                    if (this.audioEnabled) {
+                        this.playAlertSound();
+                        if ("Notification" in window && Notification.permission === "default") {
+                            Notification.requestPermission();
+                        }
+                        this.toast.message = '🔊 অর্ডার নোটিফিকেশন সাউন্ড চালু করা হয়েছে!';
+                    } else {
+                        this.toast.message = '🔇 সাউন্ড বন্ধ করা হয়েছে।';
+                    }
+                    this.toast.show = true;
+                    setTimeout(() => { this.toast.show = false; }, 2500);
+                },
+
+                // High-priority audio chime, mobile vibration, and browser notification
                 playAlertSound() {
                     try {
-                        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                        if (!AudioCtx) return;
-                        const ctx = new AudioCtx();
-                        if (ctx.state === 'suspended') ctx.resume();
-
-                        const playTone = (freq, start, dur) => {
-                            const osc = ctx.createOscillator();
-                            const gain = ctx.createGain();
-                            osc.type = 'triangle';
-                            osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
-                            gain.gain.setValueAtTime(0.4, ctx.currentTime + start);
-                            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
-                            osc.connect(gain);
-                            gain.connect(ctx.destination);
-                            osc.start(ctx.currentTime + start);
-                            osc.stop(ctx.currentTime + start + dur);
-                        };
-                        playTone(659.25, 0, 0.2);
-                        playTone(880.00, 0.18, 0.3);
-                        playTone(1046.50, 0.38, 0.5);
+                        const ctx = this.getAudioContext();
+                        if (ctx) {
+                            const playTone = (freq, start, dur, volume = 0.5) => {
+                                const osc = ctx.createOscillator();
+                                const gain = ctx.createGain();
+                                osc.type = 'triangle';
+                                osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+                                gain.gain.setValueAtTime(volume, ctx.currentTime + start);
+                                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + dur);
+                                osc.connect(gain);
+                                gain.connect(ctx.destination);
+                                osc.start(ctx.currentTime + start);
+                                osc.stop(ctx.currentTime + start + dur);
+                            };
+                            // Pleasant attention-grabbing Ding-Dong chime
+                            playTone(523.25, 0, 0.25, 0.5);    // C5
+                            playTone(659.25, 0.15, 0.25, 0.5); // E5
+                            playTone(783.99, 0.30, 0.35, 0.6); // G5
+                            playTone(1046.50, 0.45, 0.6, 0.7); // C6
+                        }
                     } catch(e) {
                         console.log('Audio alert err:', e);
+                    }
+
+                    // Vibrate mobile device
+                    if (navigator.vibrate) {
+                        try {
+                            navigator.vibrate([300, 100, 300, 100, 400]);
+                        } catch(e) {}
+                    }
+
+                    // Native Browser System Notification (Works when tab is minimized)
+                    if ("Notification" in window && Notification.permission === "granted") {
+                        try {
+                            new Notification("🔔 নতুন খাবার অর্ডার এসেছে!", {
+                                body: `${this.newOrderAlert.orderNumber} • ${this.newOrderAlert.customerName} (${this.newOrderAlert.orderTypeBadge}) • ৳${this.newOrderAlert.totalAmount}`,
+                                icon: '{{ asset("images/foodcart-logo.svg") }}'
+                            });
+                        } catch(e) {}
                     }
                 },
 
@@ -1541,10 +1676,24 @@
                         const data = await res.json();
                         if (data.success) {
                             if (data.latest_order_id > this.lastSeenOrderId && this.lastSeenOrderId > 0) {
-                                // New order arrived!
-                                this.playAlertSound();
-                                this.newOrderAlert.message = `নতুন অনলাইন অর্ডার এসেছে! (মোট ${data.pending_count}টি পেন্ডিং)`;
+                                // A new order arrived!
+                                const latest = data.latest_order;
+                                if (latest) {
+                                    this.newOrderAlert.orderId = latest.id;
+                                    this.newOrderAlert.orderNumber = '#' + latest.order_number;
+                                    this.newOrderAlert.customerName = latest.customer_name;
+                                    this.newOrderAlert.orderTypeBadge = latest.table_no ? ('🪑 টেবিল ' + latest.table_no) : (latest.order_type === 'parcel' ? '🛍️ পার্সেল' : '🍽️ ডাইন-ইন');
+                                    this.newOrderAlert.totalAmount = latest.total_amount;
+                                    this.newOrderAlert.itemsSummary = latest.items_summary;
+                                    this.newOrderAlert.message = `নতুন অর্ডার #${latest.order_number} এসেছে! (${this.newOrderAlert.orderTypeBadge})`;
+                                } else {
+                                    this.newOrderAlert.message = `নতুন অনলাইন অর্ডার এসেছে! (মোট ${data.pending_count}টি পেন্ডিং)`;
+                                }
                                 this.newOrderAlert.show = true;
+
+                                if (this.audioEnabled) {
+                                    this.playAlertSound();
+                                }
                             }
                             this.lastSeenOrderId = Math.max(this.lastSeenOrderId, data.latest_order_id);
                             this.liveOrdersList = data.live_orders;
@@ -1694,6 +1843,17 @@
                     } catch (e) {
                         alert('সার্ভার যোগাযোগ ত্রুটি');
                     }
+                },
+
+                async acknowledgeAndCook(orderId) {
+                    if (!orderId) {
+                        this.newOrderAlert.show = false;
+                        this.activeTab = 'kitchen';
+                        return;
+                    }
+                    this.newOrderAlert.show = false;
+                    this.activeTab = 'kitchen';
+                    await this.updateStatus(orderId, 'preparing');
                 }
             };
         }

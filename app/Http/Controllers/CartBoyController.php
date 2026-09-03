@@ -89,6 +89,7 @@ class CartBoyController extends Controller
         $isCartOpen = (bool) Setting::get('is_cart_open', true);
         $cartRent = (float) Setting::get('daily_cart_rent', 0.0);
         $closingPreview = $this->closingService->getClosingPreview($selectedDate);
+        $latestOrderId = (int) (Order::max('id') ?? 0);
 
         return view('cartboy.index', compact(
             'categories',
@@ -107,7 +108,8 @@ class CartBoyController extends Controller
             'cartRent',
             'closingPreview',
             'selectedDate',
-            'isToday'
+            'isToday',
+            'latestOrderId'
         ));
     }
 
@@ -170,6 +172,11 @@ class CartBoyController extends Controller
                 'created_time' => $o->created_at->format('h:i A'),
                 'time_diff' => $o->created_at->diffForHumans(),
                 'order_status' => $o->order_status,
+                'order_type' => $o->order_type,
+                'table_no' => $o->table_no ?? '',
+                'payment_method' => $o->payment_method,
+                'payment_status' => $o->payment_status,
+                'transaction_id' => $o->transaction_id ?? '',
                 'status_bn' => match ($o->order_status) {
                     'pending' => 'অপেক্ষারত',
                     'preparing' => 'রান্না হচ্ছে',
@@ -193,6 +200,15 @@ class CartBoyController extends Controller
             'success' => true,
             'live_orders' => $formattedOrders,
             'latest_order_id' => $latestOrder?->id ?? 0,
+            'latest_order' => $latestOrder ? [
+                'id' => $latestOrder->id,
+                'order_number' => $latestOrder->order_number,
+                'customer_name' => $latestOrder->customer?->name ?? 'গেস্ট কাস্টমার',
+                'order_type' => $latestOrder->order_type,
+                'table_no' => $latestOrder->table_no ?? '',
+                'total_amount' => (float) $latestOrder->total_amount,
+                'items_summary' => $latestOrder->items->map(fn ($i) => "{$i->quantity}x {$i->food_name}")->join(', '),
+            ] : null,
             'pending_count' => $liveOrders->where('order_status', 'pending')->count(),
             'live_count' => $liveOrders->count(),
             'completed_today_count' => $completedTodayCount,
