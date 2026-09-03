@@ -23,8 +23,17 @@ WORKDIR /app
 # Copy application files
 COPY . .
 
-# Set permissions
-RUN chmod -R 777 storage bootstrap/cache
+# Ensure storage directories & permissions
+RUN mkdir -p storage/framework/cache/data \
+             storage/framework/sessions \
+             storage/framework/views \
+             storage/logs \
+             bootstrap/cache \
+             database \
+    && chmod -R 777 storage bootstrap/cache database
+
+# Create default .env from .env.example
+RUN cp .env.example .env
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
@@ -32,11 +41,18 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # Build frontend assets
 RUN npm install && npm run build
 
-# Setup entrypoint script
+# Setup entrypoint script and strip any CRLF line endings
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
 
-ENV PORT=8080
+ENV APP_NAME="Food Cart Management"
+ENV APP_ENV="production"
+ENV APP_KEY="base64:9vuIuY6u+sKUzRjEzVuTkyCw/+nTbtCVqHsnycZpObA="
+ENV APP_DEBUG="false"
+ENV DB_CONNECTION="sqlite"
+ENV DB_DATABASE="/app/database/database.sqlite"
+ENV PORT="8080"
+
 EXPOSE 8080
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
