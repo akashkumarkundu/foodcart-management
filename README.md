@@ -2,6 +2,10 @@
 
 A modern, high-performance, real-time **Food Cart & Restaurant Management POS Web Application** built with Laravel 12, Livewire, Alpine.js, and Tailwind CSS. Tailored specifically for street food carts, cafes, and restaurants.
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/akashkumarkundu/foodcart-management)
+&nbsp;
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template?template=https://github.com/akashkumarkundu/foodcart-management)
+
 ---
 
 ## ✨ Features & Capabilities
